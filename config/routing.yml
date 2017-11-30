@@ -1,0 +1,4 @@
+topics_votes_route:
+    path: /game/actions/{id}/votes
+    defaults: { _controller: mafiascum.gameApi.gameApiController:get_votes }
+

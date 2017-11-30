@@ -1,0 +1,12 @@
+services:
+    mafiascum.gameApi.gameApiController:
+        class: mafiascum\automodServer\controller\GameApi
+        arguments:
+            - '@controller.helper'
+            - '@template'
+            - '@request'
+            - '@dbal.conn'
+            - '@user'
+            - '@user_loader'
+            - '@language'
+            - '@auth'
