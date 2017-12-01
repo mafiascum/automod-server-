@@ -6,13 +6,16 @@ namespace mafiascum\automodServer\model\voting;
  */
 class VoteChange {
 	private $postNumber;
+	private $postId;
 	private $voterPlayerSlot;
 	private $targetPlayerSlot;
 
 	public function __construct(
 			$postNumber,
+			$postId,
 			$voterPlayerSlot,
 			$targetPlayerSlot) {
+	  $this->postId = $postId;
       $this->postNumber = $postNumber;
       $this->voterPlayerSlot = $voterPlayerSlot;
       $this->targetPlayerSlot = $targetPlayerSlot;
@@ -28,5 +31,9 @@ class VoteChange {
 
 	public function getPostNumber() {
 		return $this->postNumber;
+	}
+
+	public function getPostId() {
+		return $this->postId;
 	}
 }

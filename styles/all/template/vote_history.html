@@ -1,0 +1,29 @@
+{% include 'overall_header.html' %}
+
+<h2>
+  <a href="/viewtopic.php?t={{ TOPIC_ID }}&f={{ FORUM_ID }}">{{ lang('LINK_TO_PARENT_TOPIC') }}</a>
+</h2>
+
+<form action="/posting.php?mode=reply&f={{ FORUM_ID }}&t={{ TOPIC_ID }}&genvc=true" method="post">
+  <table class="table1">
+    <caption>{L_VOTE_HISTORY}</caption>
+    <thead>
+      <th><a class="postlink" href="javascript:void(0);">{{ lang('VOTE_VOTER')}}</a></th>
+      <th><a class="postlink" href="javascript:void(0);">{{ lang('VOTE_TARGET') }}</a></th>
+      <th><a class="postlink" href="javascript:void(0);">{{ lang('VOTE_POST') }}</a></th>
+    </thead>
+    <tbody>
+      {% for vote in POSTS_BY_USER %}
+      <tr>
+        <td class="center">{{ vote.VOTER }}</td>
+        <td class="center">{{ vote.TARGET }}</td>
+        <td class="center"><a class="postlink" href="/viewtopic.php?p={{ vote.POST_ID }}#p{{ vote.POST_ID }}">{{ vote.POST_NUMBER }}</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <fieldset class="display-options">
+    <input class="button2" type="submit" value="{{ lang('GENERATE_VOTE_COUNT') }}">
+  </fieldset>
+</form>
+{% include 'overall_footer.html' %}

@@ -63,9 +63,7 @@ class GameApi {
 				$topicPostsListData[0]['post_bbcode']);
 
 		if (!$config) {
-			return new JsonResponse ( array (
-					"reason" => "gameconfig not found or invalid in firt post."
-			), Response::HTTP_NOT_FOUND );
+			throw new \Exception("voteconfig not found or invalid");
 		}
 
 		$topicPostsListData = ResourceFactory::list_resources(
@@ -81,7 +79,11 @@ class GameApi {
 		$postNum = $config->getDayStart();
 		foreach ( $topicPostsListData as $postRow ) {
 			$voteHistory->maybeAddFromPost (
-					$postNum, $postRow ['username'], $postRow ['post_bbcode'] );
+					$postNum,
+					$postRow['post_id'],
+					$postRow ['username'],
+					$postRow ['post_bbcode']
+		            );
 			$postNum ++;
 		}
 		$votes = array ();
@@ -91,6 +93,7 @@ class GameApi {
 			$row ['target'] = $voteChange->getTargetOrNullIfUnvote ()
 				? $voteChange->getTargetOrNullIfUnvote ()->getMainName () : NULL;
 			$row ['postNumber'] = $voteChange->getPostNumber ();
+			$row ['postId'] = $voteChange->getPostId();
 			$votes [] = $row;
 		}
 		$voteCount = \mafiascum\automodServer\model\voting\VoteCount::generateWagons(
@@ -103,8 +106,6 @@ class GameApi {
 	}
 
 	public function get_votes($id) {
-
-
 		$topicData = ResourceFactory::retrieve_resource ( $this->db, $this->auth, array (
 				"topics"
 		), array (
@@ -133,6 +134,7 @@ class GameApi {
 					"reason" => "Resource with id '" . $id . "' does not exist."
 			), Response::HTTP_NOT_FOUND );
 		}
+
 		// note that multibyte support is enabled here
 		// variables to hold the parameters for submit_post
 		$poll = $uid = $bitfield = $options = '';
@@ -167,5 +169,45 @@ class GameApi {
 		#return new JSONResponse(array('url' => $url, 'enc' => urlencode($url)));
 		#var_dump();
 		return new RedirectResponse(htmlspecialchars_decode($url));
+	}
+
+	/**
+	 * Controller for activity overview
+	 *
+	 * @param string $topic_id
+	 *
+	 * @throws \phpbb\exception\http_exception
+	 * @return \Symfony\Component\HttpFoundation\Response A Symfony Response object
+	 */
+	public function handle_vote_history($topic_id)
+	{
+		if (!$topic_id) {
+			throw new \phpbb\exception\http_exception(400, 'NO_TOPIC', $topic_id);
+		}
+		$topicData = ResourceFactory::retrieve_resource (
+				$this->db, $this->auth,
+				array ("topics"),
+				array ("topic_id" => $topic_id),
+				$this->request,
+				true );
+		if (!$topicData ) {
+			throw new \phpbb\exception\http_exception(400, 'TOPIC_NOT_FOUND', $topic_id);
+		}
+		$this->template->assign_vars(array(
+				'TOPIC_ID'  => $topic_id,
+				'FORUM_ID' => $topicData['forum_id'],
+				'U_VOTE_HISTORY' => $this->helper->route(
+						'vote_history_route', array('topic_id' => $topic_id)),
+		));
+		$data = $this->getVotesData($topic_id);
+		foreach ($data["votes"] as $vote) {
+			$this->template->assign_block_vars('POSTS_BY_USER', array(
+					'VOTER' => $vote['voter'],
+					'TARGET' => $vote['target'],
+					'POST_NUMBER' => $vote['postNumber'],
+					'POST_ID' => $vote['postId'],
+			));
+		}
+		return $this->helper->render('vote_history.html', $name);
 	}
 }

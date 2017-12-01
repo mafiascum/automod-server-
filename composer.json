@@ -2,14 +2,13 @@
     "name": "mafiascum/automodServer",
     "type": "phpbb-extension",
     "description": "Mafiascum AutMod services",
-    "homepage": "https://github.com/mafiascum/automod-server",
+    "homepage": "https://github.com/mafiascum/automodServer",
     "version": "0.1.0",
-    "time": "2017-11-27",
+    "time": "2017-11-29",
     "license": "GPL-2.0",
     "authors": [{
 	"name": "Toto",
 	"email": "toto.mafiascum@gmail.com",
-	"homepage": "https://github.com/cciccia/",
 	"role": "Omerta"
     }],
     "autoload": {

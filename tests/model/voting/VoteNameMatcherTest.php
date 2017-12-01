@@ -18,8 +18,8 @@ class VoteNameMatcherTest extends TestCase {
 			$long = new PlayerSlot('verylongname', NULL),
 			$some1 = new PlayerSlot('someone', NULL),
 			$undercores = new PlayerSlot('i_use_underscores', NULL),
-			$undercores = new PlayerSlot('ümlaute', NULL),
-			$undercores = new PlayerSlot('omlaute', NULL),
+			$umlaut = new PlayerSlot('ümlaute', NULL),
+			$omlaut = new PlayerSlot('omlaute', NULL),
 		);
 
 		$expectations = array(
@@ -39,6 +39,7 @@ class VoteNameMatcherTest extends TestCase {
 			#"some1" => $some1,
 			#"s1" => $some1,
 			#"some" => $some1,
+		    "underscorez" => $undercores,
 		);
 
 		$matcher = new VoteNameMatcher($slots);

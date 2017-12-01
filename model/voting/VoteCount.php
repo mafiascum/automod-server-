@@ -27,7 +27,7 @@ class VoteCount {
 		// Initialize everyone 'unvoting' at the first post of the day.
 		foreach ( $voteConfig->getPlayerSlotsArray () as $playerSlot ) {
 			$voteChangeByVotingPlayer [$playerSlot->getMainName ()]
-			   = new VoteChange ( $voteConfig->getDayStart (), $playerSlot, NULL );
+			   = new VoteChange ($voteConfig->getDayStart (), NULL, $playerSlot, NULL );
 		}
 
 		// update first vote to current target that didn't change after that vote

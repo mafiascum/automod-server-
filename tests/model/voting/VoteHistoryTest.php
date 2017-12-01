@@ -14,14 +14,14 @@ class VoteHistoryTest extends TestCase {
 		$toto = new PlayerSlot('Toto', NULL);
 		$kison = new PlayerSlot('Kison', NULL);
 		$voteHistory = new VoteHistory(array($toto, $kison));
-		$voteHistory->maybeAddFromPost(1, "Kison", "[v]toto[/v]");
-		$voteHistory->maybeAddFromPost(2, "Toto", "[b] Not a vote [/b]");
-		$voteHistory->maybeAddFromPost(3, "Toto", "[vote]Toto[/vote] I'm scum");
-		$voteHistory->maybeAddFromPost(4, "Toto", "[b]Unvote[/b] Just kiddin'");
+		$voteHistory->maybeAddFromPost(1, 1, "Kison", "[v]toto[/v]");
+		$voteHistory->maybeAddFromPost(2, 2, "Toto", "[b] Not a vote [/b]");
+		$voteHistory->maybeAddFromPost(3, 3, "Toto", "[vote]Toto[/vote] I'm scum");
+		$voteHistory->maybeAddFromPost(4, 4, "Toto", "[b]Unvote[/b] Just kiddin'");
 		$this->assertEquals(array(
-				new VoteChange(1, $kison, $toto),
-				new VoteChange(3, $toto, $toto),
-				new VoteChange(4, $toto, NULL),
+				new VoteChange(1, 1, $kison, $toto),
+				new VoteChange(3, 3, $toto, $toto),
+				new VoteChange(4, 4, $toto, NULL),
 		), $voteHistory->getHistory());
 	}
 }

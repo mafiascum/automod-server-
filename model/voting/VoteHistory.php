@@ -23,10 +23,15 @@ class VoteHistory {
 	 * matches the list of players defined in this vote history.
 	 *
 	 * @param integer $postNumber
+	 * @param integer $postId
 	 * @param string $postUsername
 	 * @param string $postBbcode
 	 */
-	public function maybeAddFromPost($postNumber, $postUsername, $postBbcode) {
+	public function maybeAddFromPost(
+			$postNumber,
+			$postId,
+			$postUsername,
+			$postBbcode) {
 		$voter = $this->voteNameMatcher->matchExact ( $postUsername );
 
 		if ($voter != NULL) {
@@ -36,13 +41,13 @@ class VoteHistory {
 			foreach ( $rawVoteTargetArray as $rawVoteTarget ) {
 				if (! $rawVoteTarget->getTargetOrNullIfUnvote ()) {
 					// unvote
-					$current = new VoteChange ( $postNumber, $voter, NULL );
+					$current = new VoteChange ( $postNumber, $postId, $voter, NULL );
 				} else {
 					// try to find a valid target
 					$target = $this->voteNameMatcher->matchTarget (
 							$rawVoteTarget->getTargetOrNullIfUnvote () );
 					if ($target) {
-						$current = new VoteChange ( $postNumber, $voter, $target );
+						$current = new VoteChange ( $postNumber, $postId, $voter, $target );
 					}
 				}
 			}

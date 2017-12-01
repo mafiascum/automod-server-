@@ -21,14 +21,14 @@ class VoteCounterTest extends TestCase {
 		$e = new PlayerSlot ( 'e', NULL );
 		$f = new PlayerSlot ( 'f', NULL );
 		$voteChangeArray = array (
-				new VoteChange ( 1, $a, $b ),
-				new VoteChange ( 2, $b, $b ),
-				new VoteChange ( 2, $b, NULL ),
-				new VoteChange ( 3, $c, $b ),
-				new VoteChange ( 4, $c, $d ),
-				new VoteChange ( 5, $c, $d ),
-				new VoteChange ( 6, $d, NULL ),
-				new VoteChange ( 7, $f, $d )
+				new VoteChange ( 1, 1, $a, $b ),
+				new VoteChange ( 2, 2, $b, $b ),
+				new VoteChange ( 3, 3, $b, NULL ),
+				new VoteChange ( 4, 4, $c, $b ),
+				new VoteChange ( 5, 5, $c, $d ),
+				new VoteChange ( 6, 6, $c, $d ),
+				new VoteChange ( 7, 7, $d, NULL ),
+				new VoteChange ( 8, 8, $f, $d )
 		);
 		$config = <<<XML
 		[voteconfig]
@@ -54,9 +54,9 @@ XML;
 		$expected = '';
 		$expected .= "[color=#FF0000]\n";
 		$expected .= "[area=\"Auto-Generated Vote Count\"]\n";
-		$expected .= "d (2): [post=4]c[/post] [post=7]f[/post]\n";
+		$expected .= "d (2): [post=5]c[/post] [post=8]f[/post]\n";
 		$expected .= "b (1): [post=1]a[/post]\n";
-		$expected .= "Not Voting (3): [post=2]b[/post] [post=1]d[/post] [post=1]e[/post]\n";
+		$expected .= "Not Voting (3): [post=3]b[/post] [post=1]d[/post] [post=1]e[/post]\n";
 		$expected .= "[/area]\n";
 		$expected .= "\nDeadline is in three days\n";
 		$expected .= "\nPlayer A is on V/LA until saturday\n";

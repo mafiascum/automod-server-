@@ -2,3 +2,8 @@ topics_votes_route:
     path: /game/actions/{id}/votes
     defaults: { _controller: mafiascum.gameApi.gameApiController:get_votes }
 
+vote_history_route:
+    path: /vote_history/{topic_id}
+    defaults: { _controller: mafiascum.gameApi.gameApiController:handle_vote_history}
+    requirements:
+      topic_id: \d+

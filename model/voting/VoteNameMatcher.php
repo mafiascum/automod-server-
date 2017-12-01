@@ -27,25 +27,25 @@ class VoteNameMatcher {
 
 	public function __construct($playerSlotArray) {
 		$this->playerSlotArray = $playerSlotArray;
-		$this->slotsToUniqueTokens = VoteNameMatcher::tokenize ( $playerSlotArray );
+		$this->slotsToUniqueTokens = self::tokenize ( $playerSlotArray );
 	}
 
 	private static function tokenize($playerSlotArray) {
 		$tokToSlots = array ();
 
 		foreach ( $playerSlotArray as $slot ) {
-			$tokens = VoteNameMatcher::allSubTokens ( $slot->getMainName () );
+			$tokens = self::allSubTokens ( $slot->getMainName () );
 			for ($i = 0; $i < count($tokens); ++$i) {
 				$token = "";
 				for ($j = 0; $i +$j < count($tokens); ++$j) {
-					$token .= mb_strtolower($tokens[$i + $j], VoteNameMatcher::CHARSET);
+					$token .= mb_strtolower($tokens[$i + $j], self::CHARSET);
 					$tokToSlots [$token] [] = $slot;
 					//$token .= " ";
 				}
 			}
 			$abrv = "";
 			foreach ( $tokens as $token ) {
-				$abrv .= mb_substr($token, 0, 1, VoteNameMatcher::CHARSET);
+				$abrv .= mb_substr($token, 0, 1, self::CHARSET);
 			}
 			$tokToSlots [$abrv] [] = $slot;
 		}
@@ -102,11 +102,9 @@ class VoteNameMatcher {
 		return NULL;
 	}
 
-
-
-	public static function isSameChar($a, $b, $i, $j) {
-		$ua = mb_strtolower ( mb_substr ( $a, $i, $i + 1, VoteNameMatcher::CHARSET ), VoteNameMatcher::CHARSET );
-		$ub = mb_strtolower ( mb_substr ( $b, $j, $j + 1, VoteNameMatcher::CHARSET ), VoteNameMatcher::CHARSET );
+	private static function isSameChar($a, $b, $i, $j) {
+		$ua = mb_strtolower ( mb_substr ( $a, $i, 1, self::CHARSET ), self::CHARSET );
+		$ub = mb_strtolower ( mb_substr ( $b, $j, 1, self::CHARSET ), self::CHARSET );
 		return $ua == $ub;
 	}
 
@@ -115,8 +113,12 @@ class VoteNameMatcher {
 	public static function dist($a, $b, $i = -1, $j = -1, &$mem = NULL) {
 		if ($i < 0 || $j < 0) {
 			$mem = array ();
-			return VoteNameMatcher::dist (
-					$a, $b, mb_strlen ( $a ), mb_strlen ( $b ), $mem );
+			return self::dist (
+					$a,
+					$b,
+					mb_strlen ( $a, self::CHARSET),
+					mb_strlen ( $b, self::CHARSET ),
+					$mem );
 		}
 
 		// base case
@@ -134,10 +136,10 @@ class VoteNameMatcher {
 		}
 
 		// othewise compute it recursively
-		$best = min ( VoteNameMatcher::dist ( $a, $b, $i - 1, $j, $mem ) + 1,
-				VoteNameMatcher::dist ( $a, $b, $i, $j - 1, $mem ) + 1,
-				VoteNameMatcher::dist ( $a, $b, $i - 1, $j - 1, $mem)
-					+ (VoteNameMatcher::isSameChar ( $a, $b, $i - 1, $j - 1 ) ? 0 : 1) );
+		$best = min ( self::dist ( $a, $b, $i - 1, $j, $mem ) + 1,
+				self::dist ( $a, $b, $i, $j - 1, $mem ) + 1,
+				self::dist ( $a, $b, $i - 1, $j - 1, $mem)
+					+ (self::isSameChar ( $a, $b, $i - 1, $j - 1 ) ? 0 : 1) );
 
 		// store the computed value
 		$mem [$i] [$j] = $best;
@@ -164,7 +166,7 @@ class VoteNameMatcher {
 
 		// try full names first
 		foreach ( $this->playerSlotArray as $slot ) {
-			$dist = VoteNameMatcher::dist ( $slot->getMainName (), $str );
+			$dist = self::dist ( $slot->getMainName (), $str );
 			if ($bestDist < 0 || $bestDist > $dist) {
 				$best = array ($slot);
 				$bestDist = $dist;
@@ -177,13 +179,14 @@ class VoteNameMatcher {
 			if (count ( $best ) == 1) {
 				return $best [0];
 			}
+			var_dump($best);
 			return NULL;
 		}
 		// try start with
 		// try subsequences of name tokens
 		foreach ( $this->playerSlotArray as $slot ) {
 			foreach($this->slotsToUniqueTokens[$slot->getMainName()] as $token) {
-				$dist = VoteNameMatcher::dist ( $token, $str );
+				$dist = self::dist ( $token, $str );
 				if ($bestDist < 0 || $bestDist > $dist) {
 					$best = array ($slot);
 					$bestDist = $dist;
@@ -197,9 +200,11 @@ class VoteNameMatcher {
 			if (count ( $best ) == 1) {
 				return $best [0];
 			}
+            var_dump($best);
+			return NULL;
 		}
-		return NULL;
 
+		return NULL;
 		// use some heuristics here.
 	}
 }
