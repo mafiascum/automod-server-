@@ -2,18 +2,22 @@
 
 namespace mafiascum\automodServer\model\voting;
 
-
 require_once 'PlayerSlot.php';
 require_once 'RawVoteParser.php';
 require_once 'VoteChange.php';
 require_once 'VoteNameMatcher.php';
+require_once 'VoteTarget.php';
+
 
 /**
  * Represents a voting history
  */
 class VoteHistory {
+	//vote change history
 	private $voteChangeArray = array ();
+
 	private /*VoteNameMatcher*/ $voteNameMatcher;
+
 	function __construct(/*array of PlayerSlot*/ $playerSlotArray) {
 		$this->voteNameMatcher = new VoteNameMatcher ( $playerSlotArray );
 	}
@@ -41,14 +45,28 @@ class VoteHistory {
 			foreach ( $rawVoteTargetArray as $rawVoteTarget ) {
 				if (! $rawVoteTarget->getTargetOrNullIfUnvote ()) {
 					// unvote
-					$current = new VoteChange ( $postNumber, $postId, $voter, NULL );
+					$current = new VoteChange (
+							$postNumber,
+							$postId,
+							$voter,
+							VoteTarget::unvote(),
+							$rawVoteTarget->getBbcodeSnippet());
 				} else {
 					// try to find a valid target
-					$target = $this->voteNameMatcher->matchTarget (
+					$targetSlot = $this->voteNameMatcher->matchTarget (
 							$rawVoteTarget->getTargetOrNullIfUnvote () );
-					if ($target) {
-						$current = new VoteChange ( $postNumber, $postId, $voter, $target );
+
+					if ($targetSlot) {
+						$target = VoteTarget::vote($targetSlot);
+					} else {
+						$target = VoteTarget::unrecognized();
 					}
+					$current = new VoteChange (
+							$postNumber,
+							$postId,
+							$voter,
+							$target,
+							$rawVoteTarget->getBbcodeSnippet() );
 				}
 			}
 			if ($current) {
@@ -64,4 +82,5 @@ class VoteHistory {
 		return $this->voteChangeArray;
 	}
 }
+
 

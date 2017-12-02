@@ -21,7 +21,6 @@ class VoteNameMatcherTest extends TestCase {
 			$umlaut = new PlayerSlot('ümlaute', NULL),
 			$omlaut = new PlayerSlot('omlaute', NULL),
 		);
-
 		$expectations = array(
 			"Simple" => $asn,
 		    "ASN" => $asn,
@@ -41,11 +40,8 @@ class VoteNameMatcherTest extends TestCase {
 			#"some" => $some1,
 		    "underscorez" => $undercores,
 		);
-
 		$matcher = new VoteNameMatcher($slots);
-
 		$output = array();
-
 		foreach ($expectations as $input => $expected) {
 			$output[$input] = $matcher->matchTarget($input);
 		}

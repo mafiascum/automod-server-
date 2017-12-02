@@ -7,10 +7,10 @@ namespace mafiascum\automodServer\model\voting;
  */
 class RawVoteTarget {
 	private $targetOrNullIfUnvote;
-	private $debugBbCode;
-	public function __construct($targetOrNullIfUnvote, $debugBbCode) {
+	private $bbCodeSnippet;
+	public function __construct($targetOrNullIfUnvote, $bbCodeSnippet) {
 		$this->targetOrNullIfUnvote = $targetOrNullIfUnvote;
-		$this->debugBbCode = $debugBbCode;
+		$this->bbCodeSnippet = $bbCodeSnippet;
 	}
 
 	/**
@@ -23,8 +23,8 @@ class RawVoteTarget {
 	/**
 	 * Returns the original bbcode from which this vote was parsed form
 	 */
-	public function getDebugBbCode() {
-		return $this->debugBbCode;
+	public function getBbCodeSnippet() {
+		return $this->bbCodeSnippet;
 	}
 	public function __toString() {
 		if ($this->targetOrNullIfUnvote != NULL) {

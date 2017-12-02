@@ -13,11 +13,11 @@
       <th><a class="postlink" href="javascript:void(0);">{{ lang('VOTE_POST') }}</a></th>
     </thead>
     <tbody>
-      {% for vote in POSTS_BY_USER %}
+      {% for vote in VOTES %}
       <tr>
         <td class="center">{{ vote.VOTER }}</td>
         <td class="center">{{ vote.TARGET }}</td>
-        <td class="center"><a class="postlink" href="/viewtopic.php?p={{ vote.POST_ID }}#p{{ vote.POST_ID }}">{{ vote.POST_NUMBER }}</a></td>
+        <td class="center"><a class="postlink" href="/viewtopic.php?p={{ vote.POST_ID }}#p{{ vote.POST_ID }}">{{ vote.POST_NUMBER }}: {{ vote.POST_BB_CODE }}</a></td>
       </tr>
       {% endfor %}
     </tbody>

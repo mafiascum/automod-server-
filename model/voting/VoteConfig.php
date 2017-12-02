@@ -30,7 +30,11 @@ class VoteConfig {
 	 */
 	private /*array of string*/ $annoucements;
 
-	public function __construct($playerSlotsArray, $daystart, $color, $annoucements) {
+	public function __construct(
+			$playerSlotsArray,
+			$daystart,
+			$color,
+			$annoucements) {
 		$this->playerSlotsArray = $playerSlotsArray;
 		$this->daystart = $daystart;
 		$this->color = $color;

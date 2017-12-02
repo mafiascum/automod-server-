@@ -5,13 +5,15 @@ namespace mafiascum\automodServer\controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
 use mafiascum\restApi\model\resource\ResourceFactory;
-use mafiascum\automodServer\voting\VoteConfigPostParser;
+use mafiascum\automodServer\model\voting\VoteConfigPostParser;
+use mafiascum\automodServer\model\voting\VoteTarget;
+
 
 require_once(dirname(__FILE__) . "/../../restApi/model/resource/resourceFactory.php");
 require_once(dirname(__FILE__) . "/../model/voting/VoteConfigPostParser.php");
 require_once(dirname(__FILE__) . "/../model/voting/VoteCount.php");
+require_once(dirname(__FILE__) . "/../model/voting/VoteTarget.php");
 
 class GameApi {
 	/* @var \phpbb\controller\helper */
@@ -49,7 +51,7 @@ class GameApi {
 		$this->auth = $auth;
 	}
 
-	private function getVotesData($id) {
+	private function parseConfig($id) {
 		$topicPostsListData = ResourceFactory::list_resources(
 				$this->db,
 				$this->auth,
@@ -65,7 +67,10 @@ class GameApi {
 		if (!$config) {
 			throw new \Exception("voteconfig not found or invalid");
 		}
+		return $config;
+	}
 
+	private function parseVoteHistory($config, $id) {
 		$topicPostsListData = ResourceFactory::list_resources(
 				$this->db,
 				$this->auth,
@@ -86,95 +91,28 @@ class GameApi {
 		            );
 			$postNum ++;
 		}
-		$votes = array ();
-		foreach ( $voteHistory->getHistory () as $voteChange ) {
-			$row = array ();
-			$row ['voter'] = $voteChange->getVoter ()->getMainName ();
-			$row ['target'] = $voteChange->getTargetOrNullIfUnvote ()
-				? $voteChange->getTargetOrNullIfUnvote ()->getMainName () : NULL;
-			$row ['postNumber'] = $voteChange->getPostNumber ();
-			$row ['postId'] = $voteChange->getPostId();
-			$votes [] = $row;
-		}
+
+		return $voteHistory;
+	}
+
+	public function get_votes($id) {
+		$config = $this->parseConfig($id);
+		$voteHistory = $this->parseVoteHistory($config, $id);
 		$voteCount = \mafiascum\automodServer\model\voting\VoteCount::generateWagons(
 				$config, $voteHistory->getHistory());
 		$result = array(
 				'config' => json_encode($config->getPlayerSlotsArray()),
-				'votes'=> $votes,
 				'vc' => $voteCount->toBbCode($config));
-		return $result;
-	}
 
-	public function get_votes($id) {
-		$topicData = ResourceFactory::retrieve_resource ( $this->db, $this->auth, array (
-				"topics"
-		), array (
-				"topic_id" => $id
-		), $this->request, true );
-		if (is_null ( $topicData )) {
-			return new JsonResponse ( array (
-					"reason" => "Resource with id '" . $id . "' does not exist."
-			), Response::HTTP_NOT_FOUND );
-		}
-		return new JSONResponse($this->getVotesData($id));
-	}
-
-	public function post_vote_count($id) {
-		// submit_post("reply", $subject, $username, $topic_type, $poll, $data);
-		if (! function_exists ( 'submit_post' )) {
-			include ('/var/www/html/includes/functions_posting.php');
-		}
-		$topicData = ResourceFactory::retrieve_resource ( $this->db, $this->auth, array (
-				"topics"
-		), array (
-				"topic_id" => $id
-		), $this->request, true );
-		if (is_null ( $topicData )) {
-			return new JsonResponse ( array (
-					"reason" => "Resource with id '" . $id . "' does not exist."
-			), Response::HTTP_NOT_FOUND );
-		}
-
-		// note that multibyte support is enabled here
-		// variables to hold the parameters for submit_post
-		$poll = $uid = $bitfield = $options = '';
-		$my_text = $this->getVotesData($id)['vc'];
-		generate_text_for_storage ( $my_subject, $uid, $bitfield, $options, false, false, false );
-		generate_text_for_storage ( $my_text, $uid, $bitfield, $options, true, true, true );
-		$data = array (
-				'forum_id' => $topicData['forum_id'],
-				'topic_id' => $id,
-				'icon_id' => false,
-
-				'enable_bbcode' => true,
-				'enable_smilies' => true,
-				'enable_urls' => true,
-				'enable_sig' => true,
-
-				'message' => $my_text,
-				'message_md5' => md5 ( $my_text ),
-
-				'bbcode_bitfield' => $bitfield,
-				'bbcode_uid' => $uid,
-
-				'post_edit_locked' => 0,
-				#'topic_title' => '',
-				'notify_set' => false,
-				'notify' => false,
-				'post_time' => 0,
-				'forum_name' => '',
-				'enable_indexing' => true
-		);
-		$url = submit_post ( 'reply', '', '', POST_NORMAL, $poll, $data );
-		#return new JSONResponse(array('url' => $url, 'enc' => urlencode($url)));
-		#var_dump();
-		return new RedirectResponse(htmlspecialchars_decode($url));
+		return new JSONResponse($result);
 	}
 
 	/**
-	 * Controller for activity overview
+	 * Controller for rendering vote history interface
 	 *
-	 * @param string $topic_id
+	 * @param string $topic_id the id of the topic
+	 *
+	 * @see vote_history.html
 	 *
 	 * @throws \phpbb\exception\http_exception
 	 * @return \Symfony\Component\HttpFoundation\Response A Symfony Response object
@@ -193,19 +131,38 @@ class GameApi {
 		if (!$topicData ) {
 			throw new \phpbb\exception\http_exception(400, 'TOPIC_NOT_FOUND', $topic_id);
 		}
+
+		$config = $this->parseConfig($topic_id);
+		$voteHistory = $this->parseVoteHistory($config, $topic_id);
+
 		$this->template->assign_vars(array(
 				'TOPIC_ID'  => $topic_id,
 				'FORUM_ID' => $topicData['forum_id'],
 				'U_VOTE_HISTORY' => $this->helper->route(
 						'vote_history_route', array('topic_id' => $topic_id)),
 		));
-		$data = $this->getVotesData($topic_id);
-		foreach ($data["votes"] as $vote) {
-			$this->template->assign_block_vars('POSTS_BY_USER', array(
-					'VOTER' => $vote['voter'],
-					'TARGET' => $vote['target'],
-					'POST_NUMBER' => $vote['postNumber'],
-					'POST_ID' => $vote['postId'],
+
+		foreach ( $voteHistory->getHistory () as $voteChange ) {
+			switch ($voteChange->getTarget()->getType()) {
+				case VoteTarget::VOTE:
+					$target = $voteChange->getTarget()->getTarget();
+					break;
+				case VoteTarget::UNVOTE:
+					$target = "--";
+					break;
+				case VoteTarget::UNRECOGNIZED_TARGET:
+					$target = "*invalid*";
+					break;
+				default:
+					throw new \Exception("unrecognized vote target type: "
+							. $voteChange->getTarget()->getType());
+			}
+			$this->template->assign_block_vars('VOTES', array(
+					'VOTER' => $voteChange->getVoter(),
+					'TARGET' =>  $target,
+					'POST_NUMBER' => $voteChange->getPostNumber(),
+					'POST_ID' => $voteChange->getPostId(),
+					'POST_BB_CODE' => $voteChange->getBbCodeSnippet(),
 			));
 		}
 		return $this->helper->render('vote_history.html', $name);

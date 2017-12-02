@@ -108,41 +108,46 @@ class VoteNameMatcher {
 		return $ua == $ub;
 	}
 
+
+
 	// TODO: this has not really been tested.
 	// min edit distance impelemented with top-down dynamic programming
-	public static function dist($a, $b, $i = -1, $j = -1, &$mem = NULL) {
-		if ($i < 0 || $j < 0) {
-			$mem = array ();
-			return self::dist (
-					$a,
-					$b,
-					mb_strlen ( $a, self::CHARSET),
-					mb_strlen ( $b, self::CHARSET ),
-					$mem );
+	public static function dist($a, $b, &$mem = NULL) {
+		if ($mem == NULL) {
+			$mem = array();
 		}
+
+		if (! array_key_exists ( $a, $mem )) {
+			$mem [$a] = array ();
+		}
+
+		// if already computed return that value
+		if (array_key_exists ( $b, $mem [$a] )) {
+			return $mem [$a] [$b];
+		}
+
+		$i = mb_strlen($a, self::CHARSET);
+		$j = mb_strlen($b, self::CHARSET);
+
 
 		// base case
 		if (min ( $i, $j ) == 0) {
 			return max($i, $j);
 		}
 
-		if (! array_key_exists ( $i, $mem )) {
-			$mem [$i] = array ();
-		}
-
-		// if already computed return that value
-		if (array_key_exists ( $j, $mem [$i] )) {
-			return $mem [$i] [$j];
-		}
+		$aa = mb_substr($a, 0, $i-1, self::CHARSET);
+		$bb = mb_substr($b, 0, $j-1, self::CHARSET);
 
 		// othewise compute it recursively
-		$best = min ( self::dist ( $a, $b, $i - 1, $j, $mem ) + 1,
-				self::dist ( $a, $b, $i, $j - 1, $mem ) + 1,
-				self::dist ( $a, $b, $i - 1, $j - 1, $mem)
+		$best = min ( self::dist ( $aa, $b, $mem ) + 1,
+				self::dist ( $a, $bb, $mem ) + 1,
+				self::dist ( $aa, $bb, $mem)
 					+ (self::isSameChar ( $a, $b, $i - 1, $j - 1 ) ? 0 : 1) );
 
+
+
 		// store the computed value
-		$mem [$i] [$j] = $best;
+		$mem [$a] [$b] = $best;
 		return $best;
 	}
 
@@ -163,10 +168,11 @@ class VoteNameMatcher {
 
 		$bestDist = - 1;
 		$best = NULL;
+		$mem = array();
 
 		// try full names first
 		foreach ( $this->playerSlotArray as $slot ) {
-			$dist = self::dist ( $slot->getMainName (), $str );
+			$dist = self::dist ( $slot->getMainName (), $str, $mem);
 			if ($bestDist < 0 || $bestDist > $dist) {
 				$best = array ($slot);
 				$bestDist = $dist;
@@ -179,19 +185,22 @@ class VoteNameMatcher {
 			if (count ( $best ) == 1) {
 				return $best [0];
 			}
-			var_dump($best);
+		#	var_dump($best);
 			return NULL;
 		}
-		// try start with
-		// try subsequences of name tokens
+
+			// try start with
+			// try subsequences of name tokens
 		foreach ( $this->playerSlotArray as $slot ) {
-			foreach($this->slotsToUniqueTokens[$slot->getMainName()] as $token) {
-				$dist = self::dist ( $token, $str );
-				if ($bestDist < 0 || $bestDist > $dist) {
-					$best = array ($slot);
-					$bestDist = $dist;
-				} elseif ($bestDist == $dist && !in_array($slot, $best)) {
-					$best [] = $slot;
+			if (array_key_exists ( $slot->getMainName (), $this->slotsToUniqueTokens )) {
+				foreach ( $this->slotsToUniqueTokens [$slot->getMainName ()] as $token ) {
+					$dist = self::dist ( $token, $str, $mem );
+					if ($bestDist < 0 || $bestDist > $dist) {
+						$best = array ($slot);
+						$bestDist = $dist;
+					} elseif ($bestDist == $dist && ! in_array ( $slot, $best )) {
+						$best [] = $slot;
+					}
 				}
 			}
 		}
@@ -200,9 +209,11 @@ class VoteNameMatcher {
 			if (count ( $best ) == 1) {
 				return $best [0];
 			}
-            var_dump($best);
+           # var_dump($best);
 			return NULL;
 		}
+
+		#var_dump($mem);
 
 		return NULL;
 		// use some heuristics here.

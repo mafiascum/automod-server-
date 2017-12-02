@@ -8,25 +8,28 @@ class VoteChange {
 	private $postNumber;
 	private $postId;
 	private $voterPlayerSlot;
-	private $targetPlayerSlot;
+	private $target;
+	private $bbCodeSnippet;
 
 	public function __construct(
 			$postNumber,
 			$postId,
 			$voterPlayerSlot,
-			$targetPlayerSlot) {
+			$target,
+			$bbCodeSnippet = NULL) {
+	  $this->postNumber = $postNumber;
 	  $this->postId = $postId;
-      $this->postNumber = $postNumber;
       $this->voterPlayerSlot = $voterPlayerSlot;
-      $this->targetPlayerSlot = $targetPlayerSlot;
+      $this->target = $target;
+      $this->bbCodeSnippet = $bbCodeSnippet;
 	}
 
 	public function getVoter() {
 		return $this->voterPlayerSlot;
 	}
 
-	public function getTargetOrNullIfUnvote() {
-		return $this->targetPlayerSlot;
+	public function getTarget() {
+		return $this->target;
 	}
 
 	public function getPostNumber() {
@@ -35,5 +38,9 @@ class VoteChange {
 
 	public function getPostId() {
 		return $this->postId;
+	}
+
+	public function getBbCodeSnippet() {
+		return $this->bbCodeSnippet;
 	}
 }

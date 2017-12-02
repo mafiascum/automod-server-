@@ -27,7 +27,12 @@ class VoteCount {
 		// Initialize everyone 'unvoting' at the first post of the day.
 		foreach ( $voteConfig->getPlayerSlotsArray () as $playerSlot ) {
 			$voteChangeByVotingPlayer [$playerSlot->getMainName ()]
-			   = new VoteChange ($voteConfig->getDayStart (), NULL, $playerSlot, NULL );
+			   = new VoteChange (
+			   		$voteConfig->getDayStart (),
+			   		/*postid*/ NULL,
+			   		$playerSlot,
+			   		VoteTarget::unvote(),
+			   		 NULL );
 		}
 
 		// update first vote to current target that didn't change after that vote
@@ -35,8 +40,8 @@ class VoteCount {
 		foreach ( $voteChangeArray as $voteChange ) {
 			$voter = $voteChange->getVoter ()->getMainName ();
 			// check the new target is different from the old target
-			if ($voteChangeByVotingPlayer [$voter]->getTargetOrNullIfUnvote ()
-					!= $voteChange->getTargetOrNullIfUnvote ()) {
+			if ($voteChangeByVotingPlayer [$voter]->getTarget ()
+					!= $voteChange->getTarget ()) {
 				$voteChangeByVotingPlayer [$voter] = $voteChange;
 			}
 		}
@@ -44,20 +49,20 @@ class VoteCount {
 		// 'reverse' the map
 		$voteChangeByWagonee = array ();
 		foreach ( $voteChangeByVotingPlayer as $voteChange ) {
-			$target = $voteChange->getTargetOrNullIfUnvote ();
-			$wagonee = $target ? $target->getMainName () : NULL;
+			$target = $voteChange->getTarget ();
+			$wagonee = $target->getType() == VoteTarget::VOTE ? $target->getTarget()->getMainName () : NULL;
 			$voteChangeByWagonee [$wagonee] [] = $voteChange;
 		}
 
 		uksort ( $voteChangeByWagonee, function ($a, $b) use($voteChangeByWagonee) {
+			if ($a == $b) {
+				return 0;
+			}
 			if ($a == NULL) {
 				return 1;
 			}
 			if ($b == NULL) {
 				return - 1;
-			}
-			if ($a == $b) {
-				return 0;
 			}
 			// largest wagon first
 			$ca = count ( $voteChangeByWagonee [$a] );

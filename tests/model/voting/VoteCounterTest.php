@@ -21,14 +21,14 @@ class VoteCounterTest extends TestCase {
 		$e = new PlayerSlot ( 'e', NULL );
 		$f = new PlayerSlot ( 'f', NULL );
 		$voteChangeArray = array (
-				new VoteChange ( 1, 1, $a, $b ),
-				new VoteChange ( 2, 2, $b, $b ),
-				new VoteChange ( 3, 3, $b, NULL ),
-				new VoteChange ( 4, 4, $c, $b ),
-				new VoteChange ( 5, 5, $c, $d ),
-				new VoteChange ( 6, 6, $c, $d ),
-				new VoteChange ( 7, 7, $d, NULL ),
-				new VoteChange ( 8, 8, $f, $d )
+				new VoteChange ( 1, 1, $a, VoteTarget::vote($b) ),
+				new VoteChange ( 2, 2, $b, VoteTarget::vote($b) ),
+				new VoteChange ( 3, 3, $b, VoteTarget::unvote() ),
+				new VoteChange ( 4, 4, $c, VoteTarget::vote($b) ),
+				new VoteChange ( 5, 5, $c, VoteTarget::vote($d) ),
+				new VoteChange ( 6, 6, $c, VoteTarget::vote($d) ),
+				new VoteChange ( 7, 7, $d, VoteTarget::unvote() ),
+				new VoteChange ( 8, 8, $f, VoteTarget::vote($d) )
 		);
 		$config = <<<XML
 		[voteconfig]
