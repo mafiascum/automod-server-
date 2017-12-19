@@ -5,11 +5,14 @@ namespace mafiascum\automodServer\controller;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+
+use mafiascum\restApi\api\Routes;
 use mafiascum\restApi\model\resource\ResourceFactory;
 use mafiascum\automodServer\model\voting\VoteConfigPostParser;
 use mafiascum\automodServer\model\voting\VoteTarget;
 
 
+require_once(dirname(__FILE__) . "/../../restApi/api/routes.php");
 require_once(dirname(__FILE__) . "/../../restApi/model/resource/resourceFactory.php");
 require_once(dirname(__FILE__) . "/../model/voting/VoteConfigPostParser.php");
 require_once(dirname(__FILE__) . "/../model/voting/VoteCount.php");
@@ -49,10 +52,11 @@ class GameApi {
 		$this->user_loader = $user_loader;
 		$this->language = $language;
 		$this->auth = $auth;
+		$this->routes = new ResourceFactory(Routes::$routes);
 	}
 
 	private function parseConfig($id) {
-		$topicPostsListData = ResourceFactory::list_resources(
+		$topicPostsListData = $this->routes->list_resources(
 				$this->db,
 				$this->auth,
 				array("topics", "posts"),
@@ -71,7 +75,7 @@ class GameApi {
 	}
 
 	private function parseVoteHistory($config, $id) {
-		$topicPostsListData = ResourceFactory::list_resources(
+		$topicPostsListData = $this->routes->list_resources(
 				$this->db,
 				$this->auth,
 				array("topics", "posts"),
@@ -122,11 +126,11 @@ class GameApi {
 		if (!$topic_id) {
 			throw new \phpbb\exception\http_exception(400, 'NO_TOPIC', $topic_id);
 		}
-		$topicData = ResourceFactory::retrieve_resource (
+		$topicData = $this->routes->retrieve_resource (
 				$this->db, $this->auth,
 				array ("topics"),
 				array ("topic_id" => $topic_id),
-				$this->request,
+				array(),
 				true );
 		if (!$topicData ) {
 			throw new \phpbb\exception\http_exception(400, 'TOPIC_NOT_FOUND', $topic_id);
